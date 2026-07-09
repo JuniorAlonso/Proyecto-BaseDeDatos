@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - La Estancia</title>
+    <link rel="stylesheet" href="../Css/Style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>La Estancia</h2></div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
+                <li class="nav-item"><a href="productos.html">Productos</a></li>
+                <li class="nav-item"><a href="clientes.html">Clientes</a></li>
+                <li class="nav-item active"><a href="ventas.html">Ventas (POS)</a></li>
+                <li class="nav-item"><a href="reportes.html">Reportes</a></li>
+                <li class="nav-item"><a href="usuarios.html">Usuarios</a></li>
+                <li class="nav-item"><a href="auditoria.html">Auditoría</a></li>
+                <li class="nav-item" style="margin-top: 20px;"><a href="login.html" style="color: red;">Salir</a></li>
+            </ul>
+        </aside>
+        <main class="main-content">
+            <header class="header animate-fade-up">
+                <h2>🛒 Punto de Venta (POS)</h2>
+                <div class="pos-header-meta">
+                    <span class="pos-header-badge">Caja Activa: #01</span>
+                    <span class="pos-header-badge pos-header-badge-dark" id="pos-sale-code">Venta: VTA-001</span>
+                </div>
+            </header>
+            <div class="pos-layout">
+                <div class="pos-cart-panel animate-fade-up delay-1">
+                    <div class="pos-search-card">
+                        <div class="pos-search-grid">
+                            <div class="form-group pos-search-field">
+                                <label for="pos-product-search">Producto</label>
+                                <input id="pos-product-search" list="pos-products-list" type="text" class="form-control" placeholder="Escribe el nombre del producto o su codigo...">
+                                <datalist id="pos-products-list"></datalist>
+                            </div>
+                            <div class="form-group pos-quantity-field">
+                                <label for="pos-product-quantity">Cantidad</label>
+                                <input id="pos-product-quantity" type="number" min="1" value="1" class="form-control">
+                            </div>
+                            <div class="pos-add-action">
+                                <button class="btn" id="btn-agregar-pos" type="button">+ Añadir a la lista</button>
+                            </div>
+                        </div>
+                        <p class="pos-helper-text" id="pos-feedback">Los productos se sugieren desde inventario y se agregan con su codigo y precio automaticamente.</p>
+                    </div>
+                    <table>
+                        <thead><tr><th>Cód.</th><th>Producto</th><th>Precio Unit.</th><th>Cant.</th><th>Subtotal</th><th>X</th></tr></thead>
+                        <tbody id="tabla-ventas-body"></tbody>
+                    </table>
+                </div>
+                <div class="pos-summary-card animate-fade-up delay-2">
+                    <p class="pos-summary-note">IGV (18%): S/ 0.00 (Incluido)</p>
+                    <hr class="pos-summary-divider">
+                    <h2 id="monto-total-pos" class="pos-total">Total: S/ 0.00</h2>
+                    <label class="pos-select-label" for="pos-payment-method">Método de Pago:</label>
+                    <select id="pos-payment-method" class="form-control pos-payment-select">
+                        <option>Efectivo</option>
+                        <option>Tarjeta (Visa/Mastercard)</option>
+                        <option>Yape / Plin</option>
+                    </select>
+                    <button class="btn pos-submit-button" id="btn-emitir-comprobante" type="button">Emitir Comprobante</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../Js/App.js"></script>
+</body>
+</html>

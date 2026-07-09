@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - La Estancia</title>
+    <link rel="stylesheet" href="../Css/Style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>La Estancia</h2></div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
+                <li class="nav-item active"><a href="productos.html">Productos</a></li>
+                <li class="nav-item"><a href="clientes.html">Clientes</a></li>
+                <li class="nav-item"><a href="ventas.html">Ventas (POS)</a></li>
+                <li class="nav-item"><a href="reportes.html">Reportes</a></li>
+                <li class="nav-item"><a href="usuarios.html">Usuarios</a></li>
+                <li class="nav-item"><a href="auditoria.html">Auditoría</a></li>
+                <li class="nav-item" style="margin-top: 20px;"><a href="login.html" style="color: red;">Salir</a></li>
+            </ul>
+        </aside>
+        <main class="main-content">
+            <header class="header animate-fade-up">
+                <h2>📦 Gestión de Inventario</h2>
+            </header>
+            <div class="animate-fade-up delay-1" style="margin-bottom: 20px;">
+                <button class="btn" id="btn-nuevo-producto" type="button">+ Nuevo Producto</button>
+            </div>
+            <table class="animate-fade-up delay-2">
+                <thead><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr></thead>
+                <tbody id="tabla-productos-body" data-entity="producto"></tbody>
+            </table>
+        </main>
+    </div>
+    <script src="../Js/App.js"></script>
+</body>
+</html>
