@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - La Estancia</title>
+    <link rel="stylesheet" href="../Css/Style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>La Estancia</h2></div>
+            <ul class="nav-menu">
+                <li class="nav-item active"><a href="dashboard.html">Dashboard</a></li>
+                <li class="nav-item"><a href="productos.html">Productos</a></li>
+                <li class="nav-item"><a href="clientes.html">Clientes</a></li>
+                <li class="nav-item"><a href="ventas.html">Ventas (POS)</a></li>
+                <li class="nav-item"><a href="reportes.html">Reportes</a></li>
+                <li class="nav-item"><a href="usuarios.html">Usuarios</a></li>
+                <li class="nav-item"><a href="auditoria.html">Auditoría</a></li>
+                <li class="nav-item" style="margin-top: 20px;"><a href="login.html" style="color: red;">Salir</a></li>
+            </ul>
+        </aside>
+        <main class="main-content dashboard-main">
+            <section class="dashboard-hero animate-fade-up">
+                <div class="dashboard-hero-copy">
+                    <span class="dashboard-eyebrow">Resumen operativo</span>
+                    <h2>Hola, Administrador</h2>
+                    <p>Bienvenido al sistema corporativo. Aqui tienes el rendimiento del dia con una vista clara, ordenada y funcional.</p>
+                </div>
+                <div class="dashboard-hero-panel">
+                    <span class="dashboard-hero-label">Corte actual</span>
+                    <strong id="dashboard-last-update">Actualizado 10:45 AM</strong>
+                    <p>Supervision general de caja, inventario y trafico de clientes.</p>
+                </div>
+            </section>
+            <section class="dashboard-cards dashboard-cards-refined">
+                <div class="card dashboard-stat-card animate-fade-up delay-1">
+                    <p>Ingresos de Hoy</p>
+                    <h3 id="dashboard-ingresos">S/ 0.00</h3>
+                    <span>Flujo estable durante la jornada</span>
+                </div>
+                <div class="card dashboard-stat-card is-alert animate-fade-up delay-2">
+                    <p>Stock Critico</p>
+                    <h3 id="dashboard-stock-critico">0</h3>
+                    <span>Productos que requieren atencion</span>
+                </div>
+                <div class="card dashboard-stat-card animate-fade-up delay-3">
+                    <p>Trafico de Clientes</p>
+                    <h3 id="dashboard-trafico">0</h3>
+                    <span>Movilidad registrada en el dia</span>
+                </div>
+            </section>
+            <section class="dashboard-activity animate-fade-up delay-1">
+                <div class="dashboard-section-heading">
+                    <h3>Actividad Reciente</h3>
+                    <p>Movimientos de caja registrados en la ultima hora.</p>
+                </div>
+                <div class="dashboard-table-shell animate-fade-up delay-2">
+                    <table>
+                        <thead><tr><th>Hora</th><th>Comprobante</th><th>Cajero</th><th>Monto Total</th><th>Estado</th></tr></thead>
+                        <tbody id="dashboard-activity-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../Js/App.js"></script>
+</body>
+</html>
