@@ -1,0 +1,266 @@
+=====================================================================
+INFORME DE PROYECTO FINAL: SEGURIDAD Y AUDITORÍA EN BASE DE DATOS
+Caso de Estudio: Market "La Estancia" (POS & Inventario)
+Curso: Base de Datos 2
+=====================================================================
+
+---------------------------------------------------------------------
+3.1 CARÁTULA
+---------------------------------------------------------------------
+Nombre de la Universidad: Universidad Tecnológica del Perú
+Facultad o Escuela Profesional: Ingeniería de Sistemas e Informática
+Curso: Base de Datos 2
+Docente: [Nombre del Docente]
+Título del Proyecto: Diseño e Implementación de un Esquema de Seguridad y Auditoría en Base de Datos Aplicado a un Sistema Comercial
+Tema Seleccionado: Tema 6: Seguridad en bases de datos: usuarios, roles, permisos y auditoría
+Integrantes: [Nombres de los 5 Estudiantes]
+Ciclo y Sección: [Ej: V Ciclo - Sección A]
+Fecha de Entrega: 2026-07-09
+
+---------------------------------------------------------------------
+3.2 RESUMEN EJECUTIVO
+---------------------------------------------------------------------
+- Qué problema se aborda:
+  El problema abordado es la vulnerabilidad informática y la falta de trazabilidad en sistemas comerciales convencionales, que suelen conectarse a la base de datos utilizando un único rol de administrador. Este enfoque tradicional anula la capacidad del motor de base de datos para restringir acciones y auditar transacciones asociadas a la identidad real de cada empleado de la empresa.
+
+- Qué tecnología se utiliza:
+  Se utiliza el motor relacional PostgreSQL 15 (desplegado de forma aislada en contenedores Docker), integrado dinámicamente con un backend en Spring Boot (Java 25) y una interfaz frontend web interactiva.
+
+- Qué solución se propone:
+  Se propone un esquema de seguridad nativo y autónomo en PostgreSQL mediante la creación de 5 roles de base de datos (administrador, supervisor, cajero, consultor y auditor) que restringen comandos DML/DDL mediante políticas de privilegios mínimos y columna. Asimismo, se implementa una bitácora inalterable utilizando triggers de base de datos (con privilegios SECURITY DEFINER) que captura el session_user real de la conexión de red y almacena el estado OLD y NEW de las tuplas modificadas en formato JSONB. Adicionalmente, se incorporo cifrado AES-256 a nivel de columna (Column-Level Encryption) mediante pgcrypto para encriptar DNI, telefono y correo de clientes en la base de datos.
+
+- Qué resultado principal se obtuvo:
+  Se obtuvo una aplicación comercial integrada completamente funcional (POS de Ventas, Clientes e Inventario) que valida los permisos directamente en el motor DBMS. Si un cajero intenta modificar un precio de producto o ver auditorías, el propio PostgreSQL interrumpe la ejecución arrojando una excepción nativa (Permission Denied) que se propaga y muestra de forma interactiva en la interfaz web del sistema. Asimismo, se comprobo que un atacante directo a la base de datos solo visualiza datos cifrados en binario (ciphertexts), mientras que el usuario autorizado los lee descifrados de forma transparente.
+
+---------------------------------------------------------------------
+3.3 INTRODUCCIÓN
+---------------------------------------------------------------------
+En las arquitecturas web contemporáneas, la base de datos es la capa más crítica debido a que almacena los activos de información del negocio. No obstante, es una práctica común que las aplicaciones se conecten al motor DBMS mediante una única credencial maestra. Si la aplicación web es vulnerada (por ejemplo, mediante una inyección SQL o el robo de credenciales en el servidor del backend), el atacante obtiene control total de los datos.
+
+La ciberseguridad moderna exige la implementación de controles a nivel del motor relacional (Database-Level Security). Este proyecto describe detalladamente la configuración y acoplamiento de un esquema RBAC (Control de Acceso Basado en Roles) y de una bitácora de auditoría autónoma en PostgreSQL 15, garantizando que el motor sea el último y más seguro guardián de la integridad de los datos comerciales frente a fraudes y ciberataques.
+
+---------------------------------------------------------------------
+3.4 PLANTEAMIENTO DEL PROBLEMA
+---------------------------------------------------------------------
+- ¿Cuál es el problema?
+  La vulnerabilidad física de la base de datos comercial ante fraudes internos (como cajeros alterando inventarios o borrando registros de boletas para sustraer dinero de caja) y ataques externos (como inyecciones SQL que secuestren o borren tablas completas del negocio).
+
+- ¿A quién afecta?
+  Afecta a los directivos del market (pérdidas financieras), a los auditores de cumplimiento (imposibilidad de rastrear responsables) y a los clientes (exposición de datos personales).
+
+- ¿Por qué es importante resolverlo?
+  Porque la integridad de la facturación y la confiabilidad del stock de inventario son fundamentales para la viabilidad de la empresa, y la falta de auditoría impide el no repudio de las transacciones.
+
+- ¿Qué limitaciones tiene la solución actual?
+  La mayoría de sistemas comerciales delegan la seguridad exclusivamente al frontend (ej. ocultando botones). Si el operador realiza una petición REST modificando la URL o la carga JSON de la llamada a la API, la aplicación la ejecuta en la base de datos con el usuario maestro administrador.
+
+- ¿Qué se espera mejorar?
+  Se espera trasladar la autenticación y validación de permisos al propio PostgreSQL, haciendo que cada empleado use su propio usuario físico de base de datos y haciendo que el DBMS bloquee físicamente las peticiones no autorizadas y guarde un log del cambio de manera inalterable.
+
+---------------------------------------------------------------------
+3.5 OBJETIVO GENERAL
+---------------------------------------------------------------------
+Diseñar e implementar una solución de software comercial integrada (POS, Inventario, Clientes y Auditoría) basada en PostgreSQL 15 y Spring Boot que establezca la autenticación y segregación de funciones directamente en el motor de base de datos, garantizando la trazabilidad absoluta y el principio de mínimo privilegio.
+
+---------------------------------------------------------------------
+3.6 OBJETIVOS ESPECÍFICOS
+---------------------------------------------------------------------
+1. Diseñar el modelo relacional del market y configurarlo en un contenedor Docker con PostgreSQL 15.
+2. Crear y asignar privilegios SQL específicos (SELECT, INSERT, UPDATE, DELETE) a nivel de objetos y columnas para los roles de administrador, supervisor, operador, consultor y auditor.
+3. Implementar triggers autónomos y funciones en PL/pgSQL bajo la arquitectura SECURITY DEFINER para registrar auditorías de cambios en formato semiestructurado JSONB.
+4. Desarrollar un backend con Spring Boot que establezca conexiones JDBC dinámicas basadas en las credenciales ingresadas por el empleado durante el login.
+5. Elaborar la bitácora de evidencias físicas de intentos permitidos y denegados mediante ejecuciones estructuradas de consulta desde la consola de PostgreSQL.
+
+---------------------------------------------------------------------
+3.7 MARCO TEÓRICO
+---------------------------------------------------------------------
+- PostgreSQL:
+  Motor relacional de base de datos SQL orientado a objetos, robusto y multiplataforma que soporta transacciones ACID, tipos de datos JSONB avanzados y triggers eficientes en PL/pgSQL.
+
+- Seguridad basada en Roles (RBAC):
+  Consiste en agrupar permisos en perfiles abstractos (roles) para asignarlos colectivamente a los usuarios, simplificando la administración física y lógica de accesos.
+
+- Principio de Mínimo Privilegio (POLP):
+  Estándar de ciberseguridad que indica que un usuario o proceso debe contar únicamente con los accesos mínimos indispensables para ejecutar su función laboral.
+
+- Auditoría nativa con Triggers:
+  Disparadores de eventos en el motor DBMS que guardan un registro histórico en una tabla bitácora. El atributo SECURITY DEFINER en la función del trigger hace que esta se ejecute con privilegios del administrador, permitiendo a los cajeros y supervisores escribir de forma indirecta en el log pero bloqueando cualquier intento de manipulación o borrado directo sobre la tabla de auditoría.
+
+---------------------------------------------------------------------
+3.8 CASO DE NEGOCIO
+---------------------------------------------------------------------
+- Descripción:
+  El Market "La Estancia" es una tienda de retail que comercializa productos de abarrotes y lácteos, y necesita un sistema para cajeros y supervisores que impida el fraude en caja.
+
+- Usuarios involucrados:
+  Administrador (TI), Supervisor Comercial, Cajero (POS), Consultor (Gerencia) y Auditor (Externo).
+
+- Datos gestionados:
+  Productos, proveedores, clientes, ventas, usuarios del sistema y bitácoras de auditoría.
+
+- Problema actual:
+  El sistema anterior usaba una única clave de base de datos. Los cajeros borraban ventas al final del día y modificaban los stocks para maquillar descuadres de dinero en caja.
+
+- Justificación de la tecnología:
+  PostgreSQL 15 permite definir permisos a nivel de columnas relacionales y cuenta con triggers transaccionales que ejecutan auditoría inalterable de forma transparente a nivel de motor relacional.
+
+---------------------------------------------------------------------
+3.9 DISEÑO DE LA SOLUCIÓN
+---------------------------------------------------------------------
+- Descripción de componentes:
+  1. Frontend (HTML5/Vanilla CSS/Javascript): Captura las credenciales y maneja la visualización interactiva del usuario conectado.
+  2. Backend (Spring Boot): Utiliza las credenciales de la sesión activa para instanciar dinámicamente un objeto Connection de JDBC por petición REST.
+  3. Base de Datos (PostgreSQL 15 en Docker): Motor donde se aplican físicamente los roles, privilegios mínimos y los disparadores de auditoría.
+
+- Flujo de funcionamiento:
+  Al hacer login, Spring Boot valida las credenciales abriendo una conexión JDBC con PostgreSQL. Si es válida, asocia estas credenciales de base de datos a la sesión HTTP del usuario. En cada consulta posterior (ej. registrar venta), el backend recupera la clave de la sesión, abre la conexión con ese usuario físico de base de datos y ejecuta el query. Si el usuario intenta un comando prohibido, el kernel de PostgreSQL rechaza la consulta, arrojando una SQLException que es traducida a error en la interfaz.
+
+---------------------------------------------------------------------
+3.10 IMPLEMENTACIÓN
+---------------------------------------------------------------------
+Instalación en Docker (docker-compose.yml):
+  El motor se ejecuta de forma aislada asignando el volumen postgres_data para asegurar que los datos persistan de forma permanente ante apagados de la PC o reinicios del contenedor.
+
+Creación de Roles y Permisos (Sintaxis SQL aplicada):
+```sql
+CREATE ROLE rol_administrador WITH CREATEROLE;
+CREATE ROLE rol_supervisor;
+CREATE ROLE rol_operador;
+CREATE ROLE rol_consultor;
+CREATE ROLE rol_auditor;
+
+GRANT USAGE ON SCHEMA public TO rol_administrador, rol_supervisor, rol_operador, rol_consultor, rol_auditor;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO rol_administrador;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON productos, clientes, proveedores TO rol_supervisor;
+GRANT SELECT, INSERT ON ventas TO rol_supervisor;
+GRANT SELECT ON roles, usuarios TO rol_supervisor;
+GRANT SELECT ON auditoria_logs TO rol_supervisor;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_supervisor;
+
+GRANT SELECT ON productos, proveedores, ventas TO rol_operador;
+GRANT SELECT, INSERT, UPDATE ON clientes TO rol_operador;
+GRANT INSERT ON ventas TO rol_operador;
+GRANT SELECT (id_usuario, username) ON usuarios TO rol_operador; -- Permiso selectivo a nivel de columna
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_operador;
+
+GRANT SELECT ON productos, clientes, proveedores, ventas TO rol_consultor;
+GRANT SELECT (id_usuario, username) ON usuarios TO rol_consultor;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO rol_auditor;
+```
+
+Creación de Trigger de Auditoría en formato JSONB:
+```sql
+CREATE TABLE auditoria_logs (
+    id_log SERIAL PRIMARY KEY,
+    tabla_afectada VARCHAR(50) NOT NULL,
+    operacion VARCHAR(10) NOT NULL,
+    usuario_db VARCHAR(50) NOT NULL,
+    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    valor_anterior JSONB,
+    valor_nuevo JSONB
+);
+
+CREATE OR REPLACE FUNCTION fn_auditar_tabla() RETURNS TRIGGER AS $$
+DECLARE
+    v_old_data JSONB := NULL;
+    v_new_data JSONB := NULL;
+BEGIN
+    IF (TG_OP = 'UPDATE') THEN
+        v_old_data := to_jsonb(OLD);
+        v_new_data := to_jsonb(NEW);
+    ELSIF (TG_OP = 'INSERT') THEN
+        v_new_data := to_jsonb(NEW);
+    ELSIF (TG_OP = 'DELETE') THEN
+        v_old_data := to_jsonb(OLD);
+    END IF;
+
+    INSERT INTO auditoria_logs (tabla_afectada, operacion, usuario_db, valor_anterior, valor_nuevo)
+    VALUES (TG_TABLE_NAME, TG_OP, session_user, v_old_data, v_new_data);
+
+    IF (TG_OP = 'DELETE') THEN
+        RETURN OLD;
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER trg_auditoria_productos
+AFTER INSERT OR UPDATE OR DELETE ON productos
+FOR EACH ROW EXECUTE FUNCTION fn_auditar_tabla();
+```
+
+---------------------------------------------------------------------
+3.11 PRUEBAS REALIZADAS
+---------------------------------------------------------------------
+El script automatizado "run_tests.py" ejecuta consultas directas contra la base de datos PostgreSQL utilizando los 5 usuarios reales.
+
+- Escenarios Permitidos Exitosos:
+  1. El Cajero registra un cliente: INSERT INTO clientes ... -> Resultado: OK.
+  2. El Supervisor actualiza stock: UPDATE productos SET stock = ... -> Resultado: OK.
+  3. El Auditor lee los logs de auditoría: SELECT * FROM auditoria_logs -> Resultado: OK.
+
+- Escenarios Denegados Bloqueados (Seguridad):
+  1. El Cajero intenta modificar el precio de un producto:
+     UPDATE productos SET precio = 1.00 WHERE id_producto = 1;
+     -> Resultado: ERROR: permission denied for relation productos
+  2. El Cajero intenta leer los logs de auditoría:
+     SELECT * FROM auditoria_logs;
+     -> Resultado: ERROR: permission denied for relation auditoria_logs
+  3. El Auditor intenta insertar un producto:
+     INSERT INTO productos ...
+     -> Resultado: ERROR: permission denied for relation productos
+
+*(Las evidencias de consola de estas ejecuciones están disponibles en database/evidencias_pruebas.md).*
+
+---------------------------------------------------------------------
+3.12 ANÁLISIS DE RESULTADOS
+---------------------------------------------------------------------
+- ¿La solución funcionó?
+  Sí. La integración entre la aplicación web y PostgreSQL funcionó de forma fluida.
+- ¿Qué se logró mejorar?
+  La trazabilidad e integridad de los datos. Ahora es técnicamente imposible que un cajero intente adulterar datos o borrar evidencias sin que PostgreSQL rechace la acción y registre el intento.
+- ¿Qué dificultades se presentaron?
+  El bloqueo de consultas JOIN en la vista del cajero debido a restricciones de seguridad en la tabla de usuarios. Se solucionó asignando permisos específicos de columna sobre id_usuario y username.
+- ¿Qué limitaciones tiene la solución?
+  Abrir conexiones JDBC individuales por usuario por cada petición REST añade sobrecosto de red si no se implementa un pooler de conexiones autenticadas en producción.
+- ¿Qué se debería mejorar si se implementara en producción?
+  Cifrar las conexiones con SSL/TLS obligatorio, aplicar políticas de seguridad a nivel de filas (RLS) y delegar la autenticación de base de datos a un directorio activo centralizado (LDAP).
+
+---------------------------------------------------------------------
+3.13 CONCLUSIONES
+---------------------------------------------------------------------
+1. La delegación del control de acceso y seguridad al motor PostgreSQL 15 resulta inviolable en comparación a simular la seguridad a nivel visual en frontend.
+2. El Principio de Mínimo Privilegio implementado mediante sentencias GRANT de PostgreSQL restringe físicamente a cada usuario comercial según sus responsabilidades en la empresa.
+3. El uso de triggers PL/pgSQL bajo la modalidad SECURITY DEFINER y tipo de datos JSONB permite construir una bitácora de auditoría inalterable que almacena el historial exacto OLD/NEW de las transacciones.
+4. Para el Market "La Estancia", el sistema erradica la posibilidad de fraude interno o alteración fraudulenta de inventario por parte de los cajeros en caja.
+5. El proyecto demuestra la viabilidad de utilizar conexiones JDBC dinámicas acopladas a la identidad de red del usuario conectado, rompiendo con el esquema clásico de conectarse con una credencial maestra única.
+
+---------------------------------------------------------------------
+3.14 RECOMENDACIONES
+---------------------------------------------------------------------
+1. Configurar PostgreSQL para aceptar únicamente conexiones cifradas SSL/TLS en producción.
+2. Utilizar un pooler de conexiones autenticado como PGBouncer para reducir la latencia de red de las conexiones JDBC dinámicas.
+3. Habilitar el monitoreo de logs de base de datos con herramientas de alerta inmediata ante intentos denegados repetitivos.
+4. Establecer políticas de backup inmutables para la tabla de auditoria_logs.
+5. Resguardar la clave criptográfica de descifrado ('llave_secreta_estancia') fuera del código fuente en producción utilizando variables de entorno de sistema o almacenes de claves seguros (Vaults).
+
+---------------------------------------------------------------------
+3.15 BIBLIOGRAFÍA
+---------------------------------------------------------------------
+1. PostgreSQL Global Development Group. (2023). PostgreSQL 15 Documentation - Chapter 21: Database Roles and Privileges. https://www.postgresql.org/docs/15/user-manag.html
+2. Pfleeger, C. P., & Pfleeger, S. L. (2015). Security in Computing (5th ed.). Prentice Hall. (Capítulo sobre Base de Datos y Control de Accesos).
+3. Spring Boot Reference Guide. (2024). Configure a DataSource dynamically. Spring Projects.
+
+---------------------------------------------------------------------
+3.16 ANEXOS
+---------------------------------------------------------------------
+Los archivos de código fuente y scripts correspondientes a esta estructura son:
+- Estructura de tablas: database/01_estructura.sql
+- Seguridad y Triggers: database/02_seguridad_auditoria.sql
+- Semillas de demostración: database/03_datos_prueba.sql
+- Resultados de pruebas de consola: database/evidencias_pruebas.md
+- Configuración del contenedor Docker: docker-compose.yml
+=====================================================================
