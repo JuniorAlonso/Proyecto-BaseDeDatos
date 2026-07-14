@@ -1,8 +1,10 @@
--- Script de Creación de Estructura de Base de Datos
+-- Script de Creacion de Estructura de Base de Datos
 -- Proyecto: Market "La Estancia"
 -- Compatibilidad: PostgreSQL 15+
 
--- Limpieza previa de tablas en orden inverso para evitar conflictos de llaves foráneas
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Limpieza previa de tablas en orden inverso para evitar conflictos de llaves foraneas
 DROP TABLE IF EXISTS ventas CASCADE;
 DROP TABLE IF EXISTS clientes CASCADE;
 DROP TABLE IF EXISTS productos CASCADE;
@@ -47,6 +49,7 @@ COMMENT ON TABLE proveedores IS 'Proveedores que suministran productos al market
 CREATE TABLE productos (
     id_producto SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
+    categoria VARCHAR(50) DEFAULT 'General',
     precio DECIMAL(10, 2) NOT NULL CHECK (precio >= 0),
     stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
     id_proveedor INT,
@@ -61,8 +64,10 @@ COMMENT ON TABLE productos IS 'Inventario de productos disponibles para la venta
 CREATE TABLE clientes (
     id_cliente SERIAL PRIMARY KEY,
     nombre_completo VARCHAR(150) NOT NULL,
-    dni VARCHAR(20) NOT NULL UNIQUE,
-    email VARCHAR(100) UNIQUE
+    dni BYTEA NOT NULL,
+    email BYTEA,
+    telefono BYTEA,
+    puntos INT DEFAULT 0
 );
 
 COMMENT ON TABLE clientes IS 'Clientes registrados del market.';
@@ -74,6 +79,10 @@ CREATE TABLE ventas (
     id_cliente INT,
     fecha_venta TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     total DECIMAL(12, 2) NOT NULL DEFAULT 0.00 CHECK (total >= 0),
+    voucher VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'Completado',
+    payment_method VARCHAR(50) DEFAULT 'Efectivo',
+    items JSONB,
     CONSTRAINT fk_venta_usuario FOREIGN KEY (id_usuario) 
         REFERENCES usuarios(id_usuario) 
         ON DELETE RESTRICT,
