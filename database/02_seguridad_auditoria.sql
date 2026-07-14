@@ -15,6 +15,7 @@ DROP TRIGGER IF EXISTS trg_auditoria_usuarios ON usuarios;
 
 -- Eliminar funcion de auditoria
 DROP FUNCTION IF EXISTS fn_auditar_tabla();
+DROP FUNCTION IF EXISTS fn_safe_decrypt(BYTEA, TEXT);
 
 -- Eliminar tabla de auditoria
 DROP TABLE IF EXISTS auditoria_logs CASCADE;
@@ -158,6 +159,24 @@ GRANT SELECT ON auditoria_logs TO rol_administrador;
 GRANT SELECT ON auditoria_logs TO rol_supervisor;
 GRANT SELECT ON auditoria_logs TO rol_auditor;
 
+-- Funcion auxiliar para descifrar de forma segura sin abortar la transaccion
+CREATE OR REPLACE FUNCTION fn_safe_decrypt(val BYTEA, key TEXT) RETURNS TEXT AS $$
+BEGIN
+    IF val IS NULL THEN
+        RETURN NULL;
+    END IF;
+    BEGIN
+        RETURN pgp_sym_decrypt(val, key);
+    EXCEPTION WHEN OTHERS THEN
+        BEGIN
+            RETURN convert_from(val, 'UTF8');
+        EXCEPTION WHEN OTHERS THEN
+            RETURN '\x' || encode(val, 'hex');
+        END;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Funcion de Auditoria Generica con SECURITY DEFINER
 CREATE OR REPLACE FUNCTION fn_auditar_tabla() RETURNS TRIGGER AS $$
 DECLARE
@@ -165,12 +184,53 @@ DECLARE
     v_new_data JSONB := NULL;
 BEGIN
     IF (TG_OP = 'UPDATE') THEN
-        v_old_data := to_jsonb(OLD);
-        v_new_data := to_jsonb(NEW);
+        IF (TG_TABLE_NAME = 'clientes') THEN
+            v_old_data := jsonb_build_object(
+                'id_cliente', OLD.id_cliente,
+                'nombre_completo', OLD.nombre_completo,
+                'dni', fn_safe_decrypt(OLD.dni, 'llave_secreta_estancia'),
+                'email', fn_safe_decrypt(OLD.email, 'llave_secreta_estancia'),
+                'telefono', fn_safe_decrypt(OLD.telefono, 'llave_secreta_estancia'),
+                'puntos', OLD.puntos
+            );
+            v_new_data := jsonb_build_object(
+                'id_cliente', NEW.id_cliente,
+                'nombre_completo', NEW.nombre_completo,
+                'dni', fn_safe_decrypt(NEW.dni, 'llave_secreta_estancia'),
+                'email', fn_safe_decrypt(NEW.email, 'llave_secreta_estancia'),
+                'telefono', fn_safe_decrypt(NEW.telefono, 'llave_secreta_estancia'),
+                'puntos', NEW.puntos
+            );
+        ELSE
+            v_old_data := to_jsonb(OLD);
+            v_new_data := to_jsonb(NEW);
+        END IF;
     ELSIF (TG_OP = 'INSERT') THEN
-        v_new_data := to_jsonb(NEW);
+        IF (TG_TABLE_NAME = 'clientes') THEN
+            v_new_data := jsonb_build_object(
+                'id_cliente', NEW.id_cliente,
+                'nombre_completo', NEW.nombre_completo,
+                'dni', fn_safe_decrypt(NEW.dni, 'llave_secreta_estancia'),
+                'email', fn_safe_decrypt(NEW.email, 'llave_secreta_estancia'),
+                'telefono', fn_safe_decrypt(NEW.telefono, 'llave_secreta_estancia'),
+                'puntos', NEW.puntos
+            );
+        ELSE
+            v_new_data := to_jsonb(NEW);
+        END IF;
     ELSIF (TG_OP = 'DELETE') THEN
-        v_old_data := to_jsonb(OLD);
+        IF (TG_TABLE_NAME = 'clientes') THEN
+            v_old_data := jsonb_build_object(
+                'id_cliente', OLD.id_cliente,
+                'nombre_completo', OLD.nombre_completo,
+                'dni', fn_safe_decrypt(OLD.dni, 'llave_secreta_estancia'),
+                'email', fn_safe_decrypt(OLD.email, 'llave_secreta_estancia'),
+                'telefono', fn_safe_decrypt(OLD.telefono, 'llave_secreta_estancia'),
+                'puntos', OLD.puntos
+            );
+        ELSE
+            v_old_data := to_jsonb(OLD);
+        END IF;
     END IF;
 
     INSERT INTO auditoria_logs (tabla_afectada, operacion, usuario_db, valor_anterior, valor_nuevo)

@@ -65,7 +65,7 @@ Run-TestQuery -title "S7. Intentar modificar la estructura de la tabla productos
 # 3. Cajero Estancia
 Add-Content -Path $outputFile -Value "## 3. Pruebas de Acceso: cajero_estancia (Rol: rol_operador)"
 Run-TestQuery -title "C1. Consultar productos disponibles" -user "cajero_estancia" -query "SELECT id_producto, nombre, precio, stock FROM productos LIMIT 2;"
-Run-TestQuery -title "C2. Registrar un nuevo cliente" -user "cajero_estancia" -query "INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Patricia Morales Vega', '76543210', 'patricia.morales@email.com') RETURNING *;"
+Run-TestQuery -title "C2. Registrar un nuevo cliente" -user "cajero_estancia" -query "INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Patricia Morales Vega', pgp_sym_encrypt('76543210', 'llave_secreta_estancia'), pgp_sym_encrypt('patricia.morales@email.com', 'llave_secreta_estancia')) RETURNING id_cliente, nombre_completo, puntos;"
 Run-TestQuery -title "C3. Registrar una venta" -user "cajero_estancia" -query "INSERT INTO ventas (id_usuario, id_cliente, total) VALUES (3, 4, 35.50) RETURNING *;"
 Run-TestQuery -title "C4. Intentar modificar el precio de un producto (DENEGADO)" -user "cajero_estancia" -query "UPDATE productos SET precio = 1.00 WHERE id_producto = 1;"
 Run-TestQuery -title "C5. Intentar eliminar una venta realizada (DENEGADO - Control de Integridad)" -user "cajero_estancia" -query "DELETE FROM ventas WHERE id_venta = 1;"
@@ -76,7 +76,7 @@ Run-TestQuery -title "C7. Intentar consultar los usuarios del sistema (DENEGADO)
 Add-Content -Path $outputFile -Value "## 4. Pruebas de Acceso: consultor_estancia (Rol: rol_consultor)"
 Run-TestQuery -title "CO1. Consultar inventario para reportes" -user "consultor_estancia" -query "SELECT * FROM productos LIMIT 2;"
 Run-TestQuery -title "CO2. Consultar ventas para reportes" -user "consultor_estancia" -query "SELECT * FROM ventas LIMIT 2;"
-Run-TestQuery -title "CO3. Intentar registrar un nuevo cliente (DENEGADO)" -user "consultor_estancia" -query "INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Juan Perez', '99999999', 'juan@email.com');"
+Run-TestQuery -title "CO3. Intentar registrar un nuevo cliente (DENEGADO)" -user "consultor_estancia" -query "INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Juan Perez', pgp_sym_encrypt('99999999', 'llave_secreta_estancia'), pgp_sym_encrypt('juan@email.com', 'llave_secreta_estancia'));"
 Run-TestQuery -title "CO4. Intentar ver la tabla de auditoria (DENEGADO)" -user "consultor_estancia" -query "SELECT * FROM auditoria_logs;"
 
 # 5. Auditor Estancia

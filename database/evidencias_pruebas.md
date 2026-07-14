@@ -20,10 +20,10 @@ SELECT * FROM productos LIMIT 2;
 
 **Resultado de la ejecución**:
 ```text
-id_producto |           nombre            | precio | stock | id_proveedor | categoria 
--------------+-----------------------------+--------+-------+--------------+-----------
-           1 | Arroz Integral Costeao 1kg |   4.50 |   150 |            1 | Abarrotes
-           2 | Aceite Vegetal Primor 1L    |   8.90 |    80 |            1 | Abarrotes
+id_producto |           nombre            | categoria | precio | stock | id_proveedor 
+-------------+-----------------------------+-----------+--------+-------+--------------
+           2 | Aceite Vegetal Primor 1L    | Abarrotes |   8.90 |    80 |            1
+           3 | Leche Evaporada Gloria 400g | Lacteos   |   4.20 |   200 |            2
 (2 rows)
 ```
 
@@ -61,12 +61,9 @@ SELECT id_log, tabla_afectada, operacion, usuario_db FROM auditoria_logs LIMIT 3
 
 **Resultado de la ejecución**:
 ```text
-id_log | tabla_afectada | operacion |  usuario_db   
---------+----------------+-----------+---------------
-      1 | productos      | INSERT    | administrador
-      2 | productos      | UPDATE    | administrador
-      3 | productos      | DELETE    | administrador
-(3 rows)
+id_log | tabla_afectada | operacion | usuario_db 
+--------+----------------+-----------+------------
+(0 rows)
 ```
 
 ---
@@ -81,9 +78,9 @@ INSERT INTO productos (nombre, precio, stock, id_proveedor) VALUES ('Chocolate S
 
 **Resultado de la ejecución**:
 ```text
-id_producto |        nombre         | precio | stock | id_proveedor | categoria 
--------------+-----------------------+--------+-------+--------------+-----------
-           4 | Chocolate Sublime 30g |   1.80 |   100 |            1 | General
+id_producto |        nombre         | categoria | precio | stock | id_proveedor 
+-------------+-----------------------+-----------+--------+-------+--------------
+           6 | Chocolate Sublime 30g | General   |   1.80 |   100 |            1
 (1 row)
 
 INSERT 0 1
@@ -101,9 +98,9 @@ UPDATE productos SET precio = 2.00 WHERE nombre = 'Chocolate Sublime 30g' RETURN
 
 **Resultado de la ejecución**:
 ```text
-id_producto |        nombre         | precio | stock | id_proveedor | categoria 
--------------+-----------------------+--------+-------+--------------+-----------
-           4 | Chocolate Sublime 30g |   2.00 |   100 |            1 | General
+id_producto |        nombre         | categoria | precio | stock | id_proveedor 
+-------------+-----------------------+-----------+--------+-------+--------------
+           6 | Chocolate Sublime 30g | General   |   2.00 |   100 |            1
 (1 row)
 
 UPDATE 1
@@ -121,9 +118,9 @@ DELETE FROM productos WHERE nombre = 'Chocolate Sublime 30g' RETURNING *;
 
 **Resultado de la ejecución**:
 ```text
-id_producto |        nombre         | precio | stock | id_proveedor | categoria 
--------------+-----------------------+--------+-------+--------------+-----------
-           4 | Chocolate Sublime 30g |   2.00 |   100 |            1 | General
+id_producto |        nombre         | categoria | precio | stock | id_proveedor 
+-------------+-----------------------+-----------+--------+-------+--------------
+           6 | Chocolate Sublime 30g | General   |   2.00 |   100 |            1
 (1 row)
 
 DELETE 1
@@ -143,10 +140,10 @@ SELECT * FROM productos LIMIT 2;
 
 **Resultado de la ejecución**:
 ```text
-id_producto |           nombre            | precio | stock | id_proveedor | categoria 
--------------+-----------------------------+--------+-------+--------------+-----------
-           1 | Arroz Integral Costeao 1kg |   4.50 |   150 |            1 | Abarrotes
-           2 | Aceite Vegetal Primor 1L    |   8.90 |    80 |            1 | Abarrotes
+id_producto |           nombre            | categoria | precio | stock | id_proveedor 
+-------------+-----------------------------+-----------+--------+-------+--------------
+           2 | Aceite Vegetal Primor 1L    | Abarrotes |   8.90 |    80 |            1
+           3 | Leche Evaporada Gloria 400g | Lacteos   |   4.20 |   200 |            2
 (2 rows)
 ```
 
@@ -162,9 +159,9 @@ UPDATE productos SET stock = 160 WHERE id_producto = 1 RETURNING *;
 
 **Resultado de la ejecución**:
 ```text
-id_producto |           nombre            | precio | stock | id_proveedor | categoria 
--------------+-----------------------------+--------+-------+--------------+-----------
-           1 | Arroz Integral Costeao 1kg |   4.50 |   160 |            1 | Abarrotes
+id_producto |           nombre           | categoria | precio | stock | id_proveedor 
+-------------+----------------------------+-----------+--------+-------+--------------
+           1 | Arroz Integral Costeno 1kg | Abarrotes |   4.50 |   160 |            1
 (1 row)
 
 UPDATE 1
@@ -182,9 +179,9 @@ INSERT INTO productos (nombre, precio, stock, id_proveedor) VALUES ('Fideos Don 
 
 **Resultado de la ejecución**:
 ```text
-id_producto |          nombre          | precio | stock | id_proveedor | categoria 
--------------+--------------------------+--------+-------+--------------+-----------
-           5 | Fideos Don Vittorio 500g |   3.20 |    90 |            1 | General
+id_producto |          nombre          | categoria | precio | stock | id_proveedor 
+-------------+--------------------------+-----------+--------+-------+--------------
+           7 | Fideos Don Vittorio 500g | General   |   3.20 |    90 |            1
 (1 row)
 
 INSERT 0 1
@@ -219,9 +216,9 @@ SELECT id_log, tabla_afectada, operacion, usuario_db, fecha_hora FROM auditoria_
 ```text
 id_log | tabla_afectada | operacion |  usuario_db   |         fecha_hora         
 --------+----------------+-----------+---------------+----------------------------
-    101 | productos      | INSERT    | supervisor    | 2026-07-10 01:07:15.43893
-    100 | productos      | UPDATE    | supervisor    | 2026-07-10 01:07:15.101553
-     99 | productos      | DELETE    | administrador | 2026-07-10 01:07:14.161426
+      5 | productos      | INSERT    | supervisor    | 2026-07-13 20:29:53.068988
+      4 | productos      | UPDATE    | supervisor    | 2026-07-13 20:29:52.953158
+      3 | productos      | DELETE    | administrador | 2026-07-13 20:29:52.696956
 (3 rows)
 ```
 
@@ -283,14 +280,14 @@ id_producto |           nombre            | precio | stock
 
 **Consulta SQL**:
 ```sql
-INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Patricia Morales Vega', '76543210', 'patricia.morales@email.com') RETURNING *;
+INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Patricia Morales Vega', pgp_sym_encrypt('76543210', 'llave_secreta_estancia'), pgp_sym_encrypt('patricia.morales@email.com', 'llave_secreta_estancia')) RETURNING id_cliente, nombre_completo, puntos;
 ```
 
 **Resultado de la ejecución**:
 ```text
-id_cliente |    nombre_completo    |   dni    |           email            | telefono | puntos 
-------------+-----------------------+----------+----------------------------+----------+--------
-          3 | Patricia Morales Vega | 76543210 | patricia.morales@email.com |          |      0
+id_cliente |    nombre_completo    | puntos 
+------------+-----------------------+--------
+          4 | Patricia Morales Vega |      0
 (1 row)
 
 INSERT 0 1
@@ -310,7 +307,7 @@ INSERT INTO ventas (id_usuario, id_cliente, total) VALUES (3, 2, 35.50) RETURNIN
 ```text
 id_venta | id_usuario | id_cliente |        fecha_venta         | total | voucher |   status   | payment_method | items 
 ----------+------------+------------+----------------------------+-------+---------+------------+----------------+-------
-        1 |          3 |          2 | 2026-07-10 01:07:18.727591 | 35.50 |         | Completado | Efectivo       | 
+        2 |          3 |          2 | 2026-07-13 20:29:53.969762 | 35.50 |         | Completado | Efectivo       | 
 (1 row)
 
 INSERT 0 1
@@ -390,10 +387,10 @@ SELECT * FROM productos LIMIT 2;
 
 **Resultado de la ejecución**:
 ```text
-id_producto |           nombre            | precio | stock | id_proveedor | categoria 
--------------+-----------------------------+--------+-------+--------------+-----------
-           2 | Aceite Vegetal Primor 1L    |   8.90 |    80 |            1 | Abarrotes
-           3 | Leche Evaporada Gloria 400g |   4.20 |   200 |            2 | Lacteos
+id_producto |           nombre            | categoria | precio | stock | id_proveedor 
+-------------+-----------------------------+-----------+--------+-------+--------------
+           2 | Aceite Vegetal Primor 1L    | Abarrotes |   8.90 |    80 |            1
+           3 | Leche Evaporada Gloria 400g | Lacteos   |   4.20 |   200 |            2
 (2 rows)
 ```
 
@@ -411,8 +408,9 @@ SELECT * FROM ventas LIMIT 2;
 ```text
 id_venta | id_usuario | id_cliente |        fecha_venta         | total | voucher |   status   | payment_method | items 
 ----------+------------+------------+----------------------------+-------+---------+------------+----------------+-------
-        1 |          3 |          2 | 2026-07-10 01:07:18.727591 | 35.50 |         | Completado | Efectivo       | 
-(1 row)
+        1 |          3 |          2 | 2026-07-13 20:22:48.000195 | 35.50 |         | Completado | Efectivo       | 
+        2 |          3 |          2 | 2026-07-13 20:29:53.969762 | 35.50 |         | Completado | Efectivo       | 
+(2 rows)
 ```
 
 ---
@@ -422,7 +420,7 @@ id_venta | id_usuario | id_cliente |        fecha_venta         | total | vouche
 
 **Consulta SQL**:
 ```sql
-INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Juan Pérez', '99999999', 'juan@email.com');
+INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Juan Pérez', pgp_sym_encrypt('99999999', 'llave_secreta_estancia'), pgp_sym_encrypt('juan@email.com', 'llave_secreta_estancia'));
 ```
 
 **Resultado de la ejecución**:
@@ -461,11 +459,11 @@ SELECT id_log, tabla_afectada, operacion, usuario_db, fecha_hora FROM auditoria_
 ```text
 id_log | tabla_afectada | operacion |  usuario_db   |         fecha_hora         
 --------+----------------+-----------+---------------+----------------------------
-    103 | ventas         | INSERT    | cajero        | 2026-07-10 01:07:18.727591
-    102 | clientes       | INSERT    | cajero        | 2026-07-10 01:07:18.322589
-    101 | productos      | INSERT    | supervisor    | 2026-07-10 01:07:15.43893
-    100 | productos      | UPDATE    | supervisor    | 2026-07-10 01:07:15.101553
-     99 | productos      | DELETE    | administrador | 2026-07-10 01:07:14.161426
+      7 | ventas         | INSERT    | cajero        | 2026-07-13 20:29:53.969762
+      6 | clientes       | INSERT    | cajero        | 2026-07-13 20:29:53.809295
+      5 | productos      | INSERT    | supervisor    | 2026-07-13 20:29:53.068988
+      4 | productos      | UPDATE    | supervisor    | 2026-07-13 20:29:52.953158
+      3 | productos      | DELETE    | administrador | 2026-07-13 20:29:52.696956
 (5 rows)
 ```
 
@@ -537,11 +535,11 @@ SELECT id_log, tabla_afectada, operacion, usuario_db, valor_nuevo FROM auditoria
 ```text
 id_log | tabla_afectada | operacion |  usuario_db   |                                                                                             valor_nuevo                                                                                              
 --------+----------------+-----------+---------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    103 | ventas         | INSERT    | cajero        | {"items": null, "total": 35.50, "status": "Completado", "voucher": null, "id_venta": 1, "id_cliente": 2, "id_usuario": 3, "fecha_venta": "2026-07-10T01:07:18.727591", "payment_method": "Efectivo"}
-    102 | clientes       | INSERT    | cajero        | {"dni": "76543210", "email": "patricia.morales@email.com", "puntos": 0, "telefono": null, "id_cliente": 3, "nombre_completo": "Patricia Morales Vega"}
-    101 | productos      | INSERT    | supervisor    | {"stock": 90, "nombre": "Fideos Don Vittorio 500g", "precio": 3.20, "categoria": "General", "id_producto": 5, "id_proveedor": 1}
-    100 | productos      | UPDATE    | supervisor    | {"stock": 160, "nombre": "Arroz Integral Costeao 1kg", "precio": 4.50, "categoria": "Abarrotes", "id_producto": 1, "id_proveedor": 1}
-     99 | productos      | DELETE    | administrador | 
+      7 | ventas         | INSERT    | cajero        | {"items": null, "total": 35.50, "status": "Completado", "voucher": null, "id_venta": 2, "id_cliente": 2, "id_usuario": 3, "fecha_venta": "2026-07-13T20:29:53.969762", "payment_method": "Efectivo"}
+      6 | clientes       | INSERT    | cajero        | {"dni": "76543210", "email": "patricia.morales@email.com", "puntos": 0, "telefono": null, "id_cliente": 4, "nombre_completo": "Patricia Morales Vega"}
+      5 | productos      | INSERT    | supervisor    | {"stock": 90, "nombre": "Fideos Don Vittorio 500g", "precio": 3.20, "categoria": "General", "id_producto": 7, "id_proveedor": 1}
+      4 | productos      | UPDATE    | supervisor    | {"stock": 160, "nombre": "Arroz Integral Costeno 1kg", "precio": 4.50, "categoria": "Abarrotes", "id_producto": 1, "id_proveedor": 1}
+      3 | productos      | DELETE    | administrador | 
 (5 rows)
 ```
 

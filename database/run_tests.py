@@ -31,18 +31,18 @@ tests = [
     # 3. Cajero
     {"section": "3. Pruebas de Acceso: cajero (Rol: rol_operador)"},
     {"title": "C1. Consultar productos disponibles", "user": "cajero", "query": "SELECT id_producto, nombre, precio, stock FROM productos LIMIT 2;"},
-    {"title": "C2. Registrar un nuevo cliente", "user": "cajero", "query": "INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Patricia Morales Vega', '76543210', 'patricia.morales@email.com') RETURNING *;"},
+    {"title": "C2. Registrar un nuevo cliente", "user": "cajero", "query": "INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Patricia Morales Vega', pgp_sym_encrypt('76543210', 'llave_secreta_estancia'), pgp_sym_encrypt('patricia.morales@email.com', 'llave_secreta_estancia')) RETURNING id_cliente, nombre_completo, puntos;"},
     {"title": "C3. Registrar una venta", "user": "cajero", "query": "INSERT INTO ventas (id_usuario, id_cliente, total) VALUES (3, 2, 35.50) RETURNING *;"},
     {"title": "C4. Intentar modificar el precio de un producto (DENEGADO)", "user": "cajero", "query": "UPDATE productos SET precio = 1.00 WHERE id_producto = 1;"},
     {"title": "C5. Intentar eliminar una venta realizada (DENEGADO - Control de Integridad)", "user": "cajero", "query": "DELETE FROM ventas WHERE id_venta = 1;"},
     {"title": "C6. Intentar consultar la bitácora de auditoría (DENEGADO)", "user": "cajero", "query": "SELECT * FROM auditoria_logs;"},
     {"title": "C7. Intentar consultar los usuarios del sistema (DENEGADO)", "user": "cajero", "query": "SELECT * FROM usuarios;"},
-
+ 
     # 4. Consultor
     {"section": "4. Pruebas de Acceso: consultor (Rol: rol_consultor)"},
     {"title": "CO1. Consultar inventario para reportes", "user": "consultor", "query": "SELECT * FROM productos LIMIT 2;"},
     {"title": "CO2. Consultar ventas para reportes", "user": "consultor", "query": "SELECT * FROM ventas LIMIT 2;"},
-    {"title": "CO3. Intentar registrar un nuevo cliente (DENEGADO)", "user": "consultor", "query": "INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Juan Pérez', '99999999', 'juan@email.com');"},
+    {"title": "CO3. Intentar registrar un nuevo cliente (DENEGADO)", "user": "consultor", "query": "INSERT INTO clientes (nombre_completo, dni, email) VALUES ('Juan Pérez', pgp_sym_encrypt('99999999', 'llave_secreta_estancia'), pgp_sym_encrypt('juan@email.com', 'llave_secreta_estancia'));"},
     {"title": "CO4. Intentar ver la tabla de auditoría (DENEGADO)", "user": "consultor", "query": "SELECT * FROM auditoria_logs;"},
 
     # 5. Auditor
